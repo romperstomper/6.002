@@ -2,6 +2,8 @@
 import random
 import re
 
+class NoChildException(Exception):
+  pass
 
 class SimpleVirus(object):
   def __init__(self, maxbirthprob, getclearprob):
@@ -16,20 +18,17 @@ class SimpleVirus(object):
 
   def doesClear(self):
     self.prob = random.random()
-    if self.getClearProb < self.prob:
-      return False
-    return True
+    return self.prob < self.getClearProb
 
   def reproduce(self, popDensity):
-    if self.maxBirthProb*(1-popDensity) > self.prob:
+    if self.prob < self.maxBirthProb*(1-popDensity):
       return SimpleVirus(self.maxBirthProb, self.getClearProb)
     raise NoChildException
 
 class Patient(object):
-  def __init__(self, virus, numtrials):
+  def __init__(self, virus, maxPop):
     self.viruses = virus
-    self.numtrials = numtrials
-    self.max_virus_pop = 101
+    self.max_virus_pop = maxPop
 
   def update(self):
     for virus in self.viruses:
@@ -37,7 +36,7 @@ class Patient(object):
 	self.viruses.remove(virus)
         
     for virus in self.viruses:
-      popDensity = len(self.viruses)/self.max_virus_pop
+      popDensity = len(self.viruses)/float(self.max_virus_pop)
       try:
         new_virus = virus.reproduce(popDensity)
 	self.viruses.append(new_virus)
@@ -47,6 +46,4 @@ class Patient(object):
 
   def getTotalPop(self):
     return len(self.viruses)
-    for i in range(self.numtrials):
-      self.update()
 
